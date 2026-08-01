@@ -14,12 +14,20 @@ repository = "https://github.com/DioxusLabs/components"
 [dependencies]
 dioxus.workspace = true
 dioxus-attributes = { path = "../dioxus-attributes" }
-dioxus-sdk-time = "0.7.0"
 time = { version = "0.3.44", features = ["std", "macros", "parsing", "local-offset"] }
 num-integer = "0.1.46"
 tracing.workspace = true
 serde = { version = "1.0", features = ["derive"] }
 palette = "0.7.6"
+# Timing utilities vendored in src/sdk_time.rs (see that file). These are the
+# transitive deps `dioxus-sdk-time` used for `sleep` / `use_timeout`.
+futures = "0.3.31"
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+tokio = { version = "1", features = ["time"] }
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+gloo-timers = { version = "0.3.0", features = ["futures"] }
 
 [build-dependencies]
 lazy-js-bundle = "0.7.9"

@@ -2,7 +2,7 @@
 
 use dioxus::prelude::*;
 use dioxus_core::Task;
-use dioxus_sdk_time::sleep;
+use crate::sdk_time::sleep;
 
 use std::time::Duration;
 
