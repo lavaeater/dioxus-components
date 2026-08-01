@@ -1,0 +1,35 @@
+[package]
+name = "dioxus-code-editor"
+version = "0.1.4"
+edition.workspace = true
+license.workspace = true
+description = "Syntax-highlighted code editor component for Dioxus."
+repository.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+categories.workspace = true
+readme = "README.md"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+targets = ["x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
+
+[dependencies]
+dioxus = { version = "=0.8.0-alpha.1", default-features = false, features = ["lib"] }
+dioxus-code = { workspace = true, features = ["runtime"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", features = [
+    "Element",
+    "Event",
+    "EventTarget",
+    "HtmlTextAreaElement",
+    "InputEvent",
+] }
+
+[features]
+all-languages = ["dioxus-code/all-languages"]
+detectable-languages = ["dioxus-code/detectable-languages"]
+detection = ["dioxus-code/detection"]

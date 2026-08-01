@@ -1,0 +1,66 @@
+name: Lucide Updates
+
+on:
+  schedule:
+    - cron: "17 13 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Check latest Lucide release
+        id: lucide
+        run: |
+          cargo run -p dioxus-icons-codegen -- --check-lucide-updates > lucide-update.txt
+          cat lucide-update.txt
+          if grep -q '^update_available=true$' lucide-update.txt; then
+            echo "update_available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "update_available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open update issue
+        if: steps.lucide.outputs.update_available == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const body = fs.readFileSync("lucide-update.txt", "utf8");
+            const { owner, repo } = context.repo;
+            const title = "Lucide update available";
+            const openIssues = await github.rest.issues.listForRepo({
+              owner,
+              repo,
+              state: "open",
+              per_page: 100,
+            });
+            const existing = openIssues.data.find((issue) => issue.title === title);
+            if (existing) {
+              core.info(`Issue already exists: ${existing.html_url}`);
+              return;
+            }
+            const issue = await github.rest.issues.create({
+              owner,
+              repo,
+              title,
+              body: [
+                "The scheduled Lucide update check found a newer release.",
+                "",
+                "```text",
+                body.trim(),
+                "```",
+              ].join("\n"),
+            });
+            core.info(`Created ${issue.data.html_url}`);

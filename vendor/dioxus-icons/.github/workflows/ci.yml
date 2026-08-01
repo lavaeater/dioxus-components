@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    uses: dioxuslabs/dioxus-ci/.github/workflows/check.yml@v0.1.0
+    with:
+      all-features: false
+      all-targets: true
+
+  test:
+    uses: dioxuslabs/dioxus-ci/.github/workflows/test.yml@v0.1.0
+
+  fmt:
+    uses: dioxuslabs/dioxus-ci/.github/workflows/fmt.yml@v0.1.0
+
+  docs:
+    uses: dioxuslabs/dioxus-ci/.github/workflows/docs.yml@v0.1.0
+    with:
+      toolchain: stable
+      workspace: false
+      package: dioxus-icons
+      all-features: false
+      document-private-items: false
+
+  clippy:
+    uses: dioxuslabs/dioxus-ci/.github/workflows/clippy.yml@v0.1.0
+    with:
+      all-features: false
+
+  picker:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    name: Docs Picker
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: dioxuslabs/dioxus-ci/actions/setup-dioxus@v0.1.0
+      - name: Build docs with warnings denied
+        run: RUSTDOCFLAGS="-D warnings" cargo doc --no-deps -p dioxus-icons
+      - name: Install picker test dependencies
+        working-directory: tests/playwright
+        run: npm ci
+      - name: Install Playwright browser
+        working-directory: tests/playwright
+        run: npx playwright install --with-deps chromium
+      - name: Test docs picker
+        working-directory: tests/playwright
+        run: npm test

@@ -1,13 +1,23 @@
 [workspace]
 resolver = "3"
 members = ["primitives", "preview", "test-harness", "dioxus-attributes"]
+exclude = ["vendor"]
 
 [workspace.dependencies]
 dioxus-primitives = { path = "primitives" }
 tracing = { version = "0.1", features = ["std"] }
 
-dioxus = "=0.8.0-alpha.0"
-dioxus-rsx = "=0.8.0-alpha.0"
+dioxus = "=0.8.0-alpha.1"
+dioxus-rsx = "=0.8.0-alpha.1"
+
+[patch."https://github.com/dioxuslabs/dioxus-code"]
+dioxus-code = { path = "vendor/dioxus-code" }
+
+[patch."https://github.com/dioxuslabs/dioxus-icons"]
+dioxus-icons = { path = "vendor/dioxus-icons/crates/dioxus-icons" }
+
+[patch."https://github.com/ealmloff/dioxus-i18n"]
+dioxus-i18n = { path = "vendor/dioxus-i18n" }
 
 [profile.release]
 opt-level = "z"

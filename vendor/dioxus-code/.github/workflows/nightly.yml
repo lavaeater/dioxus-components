@@ -1,0 +1,49 @@
+name: Nightly
+
+on:
+  schedule:
+    - cron: "21 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    uses: dioxuslabs/dioxus-ci/.github/workflows/check.yml@v0.1.0
+    with:
+      toolchain: nightly
+      all-features: false
+      no-default-features: true
+      features: dioxus-code/all-languages dioxus-code-docsite/web dioxus-code-live-input/web
+
+  test:
+    uses: dioxuslabs/dioxus-ci/.github/workflows/test.yml@v0.1.0
+    with:
+      toolchain: nightly
+      no-default-features: true
+      features: dioxus-code/all-languages dioxus-code-docsite/web dioxus-code-live-input/web
+
+  clippy:
+    uses: dioxuslabs/dioxus-ci/.github/workflows/clippy.yml@v0.1.0
+    with:
+      toolchain: nightly
+      all-features: false
+      no-default-features: true
+      features: dioxus-code/all-languages dioxus-code-docsite/web dioxus-code-live-input/web
+
+  web-demo:
+    uses: dioxuslabs/dioxus-ci/.github/workflows/web-build.yml@v0.1.0
+    with:
+      working-directory: docsite
+      ssg: true
+      no-default-features: true
+      features: fullstack
+      debug-symbols: false
+      base-path: ${{ github.event.repository.name }}
+      dx-cli-version: 0.7.9
+      toolchain: nightly

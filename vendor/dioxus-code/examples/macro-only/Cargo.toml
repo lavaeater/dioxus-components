@@ -1,0 +1,18 @@
+[package]
+name = "dioxus-code-macro-only"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Compile-time macro dioxus-code example application."
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+publish = false
+
+[dependencies]
+dioxus = { version = "=0.8.0-alpha.1" }
+dioxus-code = { workspace = true }
+
+[features]
+default = ["desktop"]
+desktop = ["dioxus/desktop"]
