@@ -77,7 +77,7 @@ impl ToTokens for AttributeList {
             .map(|attr| {
                 let rendered = attr.rendered_as_dynamic_attr();
                 quote! {
-                    __attrs.extend(#rendered);
+                    __attrs.extend(__IntoAttrs::__into_attrs(#rendered));
                 }
             })
             .collect();
@@ -95,6 +95,29 @@ impl ToTokens for AttributeList {
 
         let output = quote! {
             {
+                // dioxus-rsx renders an attribute as a `Box<[Attribute; N]>`,
+                // a `Box<[Attribute]>` or a `Vec<Attribute>` depending on its
+                // kind. A boxed array is not `IntoIterator`, so normalise them
+                // all before extending.
+                trait __IntoAttrs<T> {
+                    fn __into_attrs(self) -> ::std::vec::Vec<T>;
+                }
+                impl<T> __IntoAttrs<T> for ::std::vec::Vec<T> {
+                    fn __into_attrs(self) -> ::std::vec::Vec<T> {
+                        self
+                    }
+                }
+                impl<T> __IntoAttrs<T> for ::std::boxed::Box<[T]> {
+                    fn __into_attrs(self) -> ::std::vec::Vec<T> {
+                        self.into_vec()
+                    }
+                }
+                impl<T, const N: usize> __IntoAttrs<T> for ::std::boxed::Box<[T; N]> {
+                    fn __into_attrs(self) -> ::std::vec::Vec<T> {
+                        let slice: ::std::boxed::Box<[T]> = self;
+                        slice.into_vec()
+                    }
+                }
                 let mut __attrs: Vec<_> = Vec::new();
                 #( #attr_tokens )*
                 #( #spread_tokens )*
